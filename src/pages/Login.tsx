@@ -1,5 +1,6 @@
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '../lib/firebase';
+import { type Auth } from 'firebase/auth';
 import { Layout } from '../components/Layout';
 import { LogIn, AlertTriangle } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
@@ -12,12 +13,12 @@ export const Login = () => {
     if (user) return <Navigate to="/dashboard" replace />;
 
     const handleLogin = async () => {
-        if (!isFirebaseConfigured) {
+        if (!isFirebaseConfigured || !auth) {
             alert("Firebase is not configured. Please add your API keys to .env");
             return;
         }
         try {
-            await signInWithPopup(auth, googleProvider);
+            await signInWithPopup(auth as Auth, googleProvider);
         } catch (error) {
             console.error(error);
             alert("Login failed. Check console.");

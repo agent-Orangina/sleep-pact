@@ -18,8 +18,8 @@ if (!isConfigured) {
     console.warn("Firebase not configured. Check your .env file.");
 }
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const app = isConfigured ? initializeApp(firebaseConfig) : null;
+export const auth = app ? getAuth(app) : null;
+export const db = app ? getFirestore(app) : null;
 export const googleProvider = new GoogleAuthProvider();
 export const isFirebaseConfigured = isConfigured;

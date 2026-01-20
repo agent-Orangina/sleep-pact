@@ -1,6 +1,7 @@
 import { doc, getDoc, setDoc, updateDoc, collection, serverTimestamp, increment, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import type { User } from 'firebase/auth';
+import { type Firestore } from 'firebase/firestore';
 
 export interface UserProfile {
     uid: string;
@@ -13,7 +14,8 @@ export interface UserProfile {
 }
 
 export const ensureUserProfile = async (user: User): Promise<UserProfile> => {
-    const userRef = doc(db, 'users', user.uid);
+    if (!db) throw new Error("Database not initialized");
+    const userRef = doc(db as Firestore, 'users', user.uid);
     const snap = await getDoc(userRef);
 
     if (snap.exists()) {
@@ -38,13 +40,15 @@ export const ensureUserProfile = async (user: User): Promise<UserProfile> => {
 };
 
 export const updateUserGoal = async (uid: string, time: string) => {
-    const userRef = doc(db, 'users', uid);
+    if (!db) return;
+    const userRef = doc(db as Firestore, 'users', uid);
     await updateDoc(userRef, { targetTime: time });
 };
 
 export const logDailySleep = async (uid: string, success: boolean, date: string) => {
-    const userRef = doc(db, 'users', uid);
-    const logRef = doc(db, 'users', uid, 'logs', date);
+    if (!db) return;
+    const userRef = doc(db as Firestore, 'users', uid);
+    const logRef = doc(db as Firestore, 'users', uid, 'logs', date);
 
     await setDoc(logRef, {
         success,
@@ -65,6 +69,7 @@ export const logDailySleep = async (uid: string, success: boolean, date: string)
 };
 
 export const getGroupStats = async (): Promise<UserProfile[]> => {
-    const snap = await getDocs(collection(db, 'users'));
+    if (!db) return [];
+    const snap = await getDocs(collection(db as Firestore, 'users'));
     return snap.docs.map(d => d.data() as UserProfile);
 };
