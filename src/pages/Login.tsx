@@ -8,8 +8,9 @@ import { useAuth } from '../lib/AuthContext';
 
 export const Login = () => {
     const { user, loading } = useAuth();
+    console.log("Login Render:", { user, loading, isFirebaseConfigured });
 
-    if (loading) return null;
+    if (loading) return <div className="text-white p-10">Loading Login...</div>;
     if (user) return <Navigate to="/dashboard" replace />;
 
     const handleLogin = async () => {

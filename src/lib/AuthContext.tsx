@@ -12,11 +12,15 @@ const AuthContext = createContext<AuthContextType>({ user: null, loading: true }
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    console.log("AuthProvider: Init");
 
     useEffect(() => {
         if (!auth) {
-            setLoading(false);
-            return;
+            // Auth not configured - use requestAnimationFrame to defer setState
+            const frameId = requestAnimationFrame(() => {
+                setLoading(false);
+            });
+            return () => cancelAnimationFrame(frameId);
         }
         const unsubscribe = onAuthStateChanged(auth, (u) => {
             setUser(u);
@@ -32,4 +36,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

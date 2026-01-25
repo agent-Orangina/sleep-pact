@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Layout } from '../components/Layout';
 import { useAuth } from '../lib/AuthContext';
-import { type UserProfile, ensureUserProfile, getGroupStats, logDailySleep } from '../lib/db';
+import { type UserProfile, ensureUserProfile, getGroupStats, logDailySleep, getUserSleepHistory, type SleepLog } from '../lib/db';
 import { LogOut, CheckCircle2, XCircle, DollarSign, Moon, Settings } from 'lucide-react';
 import { auth, isFirebaseConfigured } from '../lib/firebase';
 import { format, subDays } from 'date-fns';
@@ -11,6 +11,7 @@ export const Dashboard = () => {
     const { user } = useAuth();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [group, setGroup] = useState<UserProfile[]>([]);
+    const [history, setHistory] = useState<SleepLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [logging, setLogging] = useState(false);
 
@@ -23,6 +24,8 @@ export const Dashboard = () => {
                 setProfile(p);
                 const g = await getGroupStats();
                 setGroup(g);
+                const h = await getUserSleepHistory(user.uid);
+                setHistory(h);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -45,6 +48,8 @@ export const Dashboard = () => {
             setProfile(p);
             const g = await getGroupStats();
             setGroup(g);
+            const h = await getUserSleepHistory(user.uid);
+            setHistory(h);
         } catch (e) {
             console.error(e);
         } finally {
@@ -86,7 +91,7 @@ export const Dashboard = () => {
                     </div>
                 </div>
                 <button
-                    onClick={() => auth.signOut()}
+                    onClick={() => auth?.signOut()}
                     className="p-2 bg-surface rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
                     title="Sign Out"
                 >
@@ -146,6 +151,25 @@ export const Dashboard = () => {
                     </div>
                     <div className="text-3xl font-bold text-red-400">{profile?.misses || 0}</div>
                     <div className="text-xs text-red-400/50 mt-1">-${(profile?.misses || 0) * 10}</div>
+                </div>
+            </div>
+
+            {/* History Card */}
+            <div className="bg-surface p-6 rounded-2xl border border-white/5 mb-8">
+                <h3 className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-4">Recent History</h3>
+                <div className="space-y-3">
+                    {history.length === 0 ? (
+                        <div className="text-slate-500 text-sm">No history available yet.</div>
+                    ) : (
+                        history.map((log) => (
+                            <div key={log.date} className="flex items-center justify-between border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                                <div className="text-slate-300 text-sm">{format(new Date(log.date), 'MMM d, yyyy')}</div>
+                                <div className={`px-2 py-1 rounded-md text-xs font-medium ${log.success ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                                    {log.success ? 'On Time' : 'Late'}
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 
